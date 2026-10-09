@@ -50,9 +50,10 @@ def _normalize_entry(val) -> tuple[str, str]:
         return src, comment
     if isinstance(val, str):
         s = val.strip()
-        if s.startswith("commons:"):
-            return s[len("commons:") :], s
-        return s, (f"commons:{s}" if s else "")
+        for prefix in ("mixin:", "commons:"):
+            if s.startswith(prefix):
+                return s[len(prefix) :], s if s.startswith("mixin:") else f"mixin:{s[len(prefix):]}"
+        return s, (f"mixin:{s}" if s else "")
     return "", ""
 
 
@@ -97,7 +98,7 @@ def _from_files(zone: str) -> dict[tuple[str, str], tuple[str, str]]:
             continue
         out[(r["name"].rstrip(".").lower(), r["type"].upper())] = (
             src,
-            r.get("comment") or f"commons:{src}",
+            r.get("comment") or f"mixin:{src}",
         )
     return out
 
