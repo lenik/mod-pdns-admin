@@ -10,6 +10,7 @@ class RecordEntry(object):
                  ttl=None,
                  data=None,
                  comment=None,
+                 source=None,
                  is_allowed_edit=False):
         self.name = name
         self.type = type
@@ -17,6 +18,8 @@ class RecordEntry(object):
         self.ttl = ttl
         self.data = data
         self.comment = comment
+        # non-null ⇒ from zones/tree/inc (commons); Admin hides these by default
+        self.source = source
         self._is_allowed_edit = is_allowed_edit
         self._is_allowed_delete = is_allowed_edit and self.type != 'SOA'
 

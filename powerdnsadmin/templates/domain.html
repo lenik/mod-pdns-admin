@@ -128,6 +128,10 @@
                                     </button>
                                 {% endif %}
                                 {% if domain.type != 'Slave' %}
+                                    <label class="btn btn-outline-secondary ms-2 mt-2 mb-2" title="Commons RRs from zones/tree/inc (have source)">
+                                        <input type="checkbox" id="toggle_show_commons" class="form-check-input me-1">
+                                        Show commons
+                                    </label>
                                     <button type="button" title="Add Record"
                                             class="btn btn-primary ms-2 mt-2 mb-2 button_add_record" id="{{ domain.name }}">
                                         <i class="fa-solid fa-plus"></i>
@@ -169,14 +173,16 @@
                                 </thead>
                                 <tbody>
                                 {% for record in records %}
-                                    <tr class="odd row_record" id="{{ domain.name }}">
+                                    <tr class="odd row_record{% if record.source %} row-commons{% endif %}"
+                                        id="{{ domain.name }}"
+                                        data-source="{{ record.source or '' }}">
                                         <td>{{ (record.name,domain.name) | display_record_name | pretty_domain_name }}</td>
                                         <td>{{ record.type }}</td>
                                         <td>{{ record.status }}</td>
                                         <td>{{ record.ttl }}</td>
                                         <td>{{ record.data | pretty_domain_name }}</td>
                                         {% if domain.type != 'Slave' %}
-                                            <td>{{ record.comment }}</td>
+                                            <td>{% if record.source %}<span class="badge text-bg-secondary me-1" title="source">{{ record.source }}</span>{% endif %}{{ record.comment }}</td>
                                             <td>
                                                 {% if record.is_allowed_edit() %}
                                                     <button type="button" title="Edit" class="btn btn-sm btn-warning button_edit">
@@ -251,6 +257,23 @@
         window.ttl_options = {{ ttl_options | tojson }};
         window.nEditing = null;
         window.nNew = false;
+        // hide commons (source != null) by default
+        window.showCommonsRecords = false;
+
+        $.fn.dataTable.ext.search.push(function (settings, _data, dataIndex) {
+            if (!settings.nTable || settings.nTable.id !== 'tbl_records') {
+                return true;
+            }
+            if (window.showCommonsRecords) {
+                return true;
+            }
+            var row = settings.aoData[dataIndex] && settings.aoData[dataIndex].nTr;
+            if (!row) {
+                return true;
+            }
+            var src = row.getAttribute('data-source') || '';
+            return !src;
+        });
 
         // set up user data table
         initDataTable("#tbl_records", {
@@ -301,7 +324,17 @@
                 "orderFixed": [[7, 'asc']]
             {% else %}
                 "orderFixed": [[5, 'asc']]
-            {% endif %}
+            {% endif %},
+            "createdRow": function (row, _data, _dataIndex) {
+                if (!row.getAttribute('data-source')) {
+                    row.setAttribute('data-source', '');
+                }
+            }
+        });
+
+        $('#toggle_show_commons').on('change', function () {
+            window.showCommonsRecords = !!this.checked;
+            $("#tbl_records").DataTable().draw();
         });
 
         {% if catalog_members is not none %}

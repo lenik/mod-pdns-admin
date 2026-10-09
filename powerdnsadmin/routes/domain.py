@@ -108,6 +108,10 @@ def domain(domain_name):
                     c=r['comments'][index]['content']
                 else:
                     c=''
+                # per-record source, fall back to rrset-level
+                src = record.get('source')
+                if src is None:
+                    src = r.get('source')
                 record_entry = RecordEntry(
                     name=r_name,
                     type=r['type'],
@@ -115,6 +119,7 @@ def domain(domain_name):
                     ttl=r['ttl'],
                     data=record['content'],
                     comment=c,
+                    source=src,
                     is_allowed_edit=True)
                 index += 1
                 records.append(record_entry)

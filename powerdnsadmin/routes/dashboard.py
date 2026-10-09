@@ -19,6 +19,7 @@ from ..models.history import History
 from ..models.server import Server
 from ..models.base import db
 from ..services.dnssec import check_parent_ds, dnssec_key_identity
+from ..lib.utils import pretty_domain_name
 
 dashboard_bp = Blueprint('dashboard',
                          __name__,
@@ -631,7 +632,9 @@ def domains_v2(tab_id):
     for domain in domains.all():
         data.append({
             'id': domain.id,
+            # Punycode stays in urls.*; displayName is Unicode for IDN
             'name': domain.name,
+            'displayName': pretty_domain_name(domain.name),
             'dnssec': bool(domain.dnssec),
             'type': domain.type,
             'serial': domain.serial,

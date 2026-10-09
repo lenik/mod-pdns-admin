@@ -239,20 +239,20 @@ def ensure_list(l):
 
 
 def pretty_domain_name(domain_name):
-    # Add a debugging statement to print out the domain name
-    print("Received zone name:", domain_name)
+    """Show Unicode for IDN zones; keep ASCII names unchanged.
 
-    # Check if the domain name is encoded using Punycode
-    if domain_name.endswith('.xn--'):
-        try:
-            # Decode the domain name using the idna library
-            domain_name = idna.decode(domain_name)
-        except Exception as e:
-            # If the decoding fails, raise an exception with more information
-            raise Exception('Cannot decode IDN zone: {}'.format(e))
-
-    # Return the "pretty" version of the zone name
-    return domain_name
+    DNS/PowerDNS store Punycode (e.g. xn--1rwrwm3a.com). Labels that
+    start with ``xn--`` are decoded for display. The previous
+    ``endswith('.xn--')`` check never matched real zone names.
+    """
+    if not domain_name:
+        return domain_name
+    if 'xn--' not in domain_name.lower():
+        return domain_name
+    try:
+        return to_idna(domain_name, 'decode')
+    except Exception:
+        return domain_name
 
 
 def to_idna(value, action):

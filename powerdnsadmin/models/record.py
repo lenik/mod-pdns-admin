@@ -71,6 +71,14 @@ class Record(object):
             r['records'], r['comments'] = (list(t) for t in zip(*sorted(zip(r['records'], r['comments']), key=by_record_content_pair)))
             rrsets.append(r)
 
+        # Tag commons RRs with source file (inc/soa.db, …). Remote backend
+        # cannot expose listComments; annotate from local zones/tree.
+        try:
+            from ..lib.commons_sources import annotate_rrsets
+            rrsets = annotate_rrsets(domain, rrsets)
+        except Exception as e:
+            current_app.logger.debug("commons comment annotate skipped: %s", e)
+
         return rrsets
 
     def add(self, domain_name, rrset):

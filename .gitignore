@@ -65,3 +65,7 @@ docker/docker-compose-rocky.yml
 docker/rocky/
 docker/megalinter/
 .github/workflows/build-rocky.yml
+
+# local secrets
+.env
+

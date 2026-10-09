@@ -58,9 +58,13 @@
         if (type !== 'display') {
             return data;
         }
+        var label = row.displayName || data;
         var link = element('a');
         link.href = row.urls.records;
-        link.appendChild(element('strong', '', data));
+        link.appendChild(element('strong', '', label));
+        if (row.displayName && row.displayName !== data) {
+            link.title = data;  // show punycode on hover
+        }
         return link.outerHTML;
     }
 

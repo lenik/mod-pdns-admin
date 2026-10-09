@@ -13,6 +13,17 @@ def create_app(config=None):
     from .assets import assets
     app = Flask(__name__)
 
+    # Load admin/.env into os.environ if present (gunicorn may not inherit it).
+    _env_path = os.path.join(os.path.dirname(app.root_path), '.env')
+    if not os.path.isfile(_env_path):
+        _env_path = os.path.join(app.root_path, '.env')
+    if os.path.isfile(_env_path):
+        try:
+            from dotenv import load_dotenv
+            load_dotenv(_env_path, override=False)
+        except Exception:
+            pass
+
     # Read log level from environment variable
     log_level_name = os.environ.get('PDNS_ADMIN_LOG_LEVEL', 'WARNING')
     log_level = logging.getLevelName(log_level_name.upper())

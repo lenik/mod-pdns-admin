@@ -1188,6 +1188,24 @@ def api_zone_forward(server_id, zone_id):
                                   created_by=created_by_value,
                                   domain_id=Domain().get_id_by_name(zone_id.rstrip('.')))
                 history.add()
+
+    # GET: attach source on commons RRs (unique keep source=null)
+    if request.method == 'GET' and 200 <= status < 300:
+        try:
+            from ..lib.commons_sources import annotate_rrsets
+            payload = resp.json()
+            if isinstance(payload, dict) and 'rrsets' in payload:
+                annotate_rrsets(zone_id.rstrip('.'), payload['rrsets'])
+                body = json.dumps(payload).encode()
+                headers = [
+                    (k, v) for k, v in resp.headers.items()
+                    if k.lower() not in ('content-length', 'transfer-encoding')
+                ]
+                headers.append(('Content-Length', str(len(body))))
+                return body, status, headers
+        except Exception as e:
+            current_app.logger.debug("zone source annotate skipped: %s", e)
+
     return resp.content, resp.status_code, resp.headers.items()
 
 
